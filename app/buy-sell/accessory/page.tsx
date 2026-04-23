@@ -6,6 +6,37 @@ import Link from "next/link";
 import { GlassCard } from "@/components/ui/glass-card";
 import { products, Product } from "@/lib/products";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
+import { useTheme } from "@/hooks/use-theme";
+
+const ThemeToggle = memo(function ThemeToggle() {
+  const { theme, toggleTheme, isDark } = useTheme();
+
+  return (
+    <button
+      onClick={toggleTheme}
+      className="relative w-11 h-11 flex items-center justify-center rounded-xl bg-black/[0.03] border border-black/12 dark:bg-white/[0.03] dark:border-white/12 active:scale-95 transition-transform duration-150 touch-manipulation"
+      aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+    >
+      {isDark ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-400">
+          <circle cx="12" cy="12" r="5" />
+          <line x1="12" y1="1" x2="12" y2="3" />
+          <line x1="12" y1="21" x2="12" y2="23" />
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+          <line x1="1" y1="12" x2="3" y2="12" />
+          <line x1="21" y1="12" x2="23" y2="12" />
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+        </svg>
+      ) : (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-300">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+        </svg>
+      )}
+    </button>
+  );
+});
 
 const navLinks = [
   { href: "/", label: "Home" },
@@ -21,7 +52,7 @@ const MobileHeader = memo(function MobileHeader() {
 
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[#0a0a0a]/90 backdrop-blur-md border-b border-white/10">
+      <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-md border-b border-black/10 dark:border-white/10">
         <div className="flex items-center justify-between px-4 py-3">
           <Link href="/" className="flex items-center gap-2" onClick={closeMenu}>
             <div className="relative w-10 h-10">
@@ -29,20 +60,23 @@ const MobileHeader = memo(function MobileHeader() {
             </div>
             <div className="flex flex-col">
               <span className="text-xs font-bold text-amber-500 leading-none">I.T MAN</span>
-              <span className="text-[10px] text-gray-400 leading-none">APPLE CARE</span>
+              <span className="text-[10px] text-gray-600 dark:text-gray-400 leading-none">APPLE CARE</span>
             </div>
           </Link>
-          <button onClick={toggleMenu} className="relative w-11 h-11 flex items-center justify-center rounded-xl bg-white/[0.03] border border-white/12 active:scale-95 transition-transform duration-150 touch-manipulation" aria-label="Toggle menu">
-            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-white">
-              {menuOpen ? (<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>) : (<><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>)}
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            <button onClick={toggleMenu} className="relative w-11 h-11 flex items-center justify-center rounded-xl bg-black/[0.03] border border-black/12 dark:bg-white/[0.03] dark:border-white/12 active:scale-95 transition-transform duration-150 touch-manipulation" aria-label="Toggle menu">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-black dark:text-white">
+                {menuOpen ? (<><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></>) : (<><line x1="3" y1="6" x2="21" y2="6" /><line x1="3" y1="12" x2="21" y2="12" /><line x1="3" y1="18" x2="21" y2="18" /></>)}
+              </svg>
+            </button>
+          </div>
         </div>
         {menuOpen && (
-          <div className="overflow-hidden bg-black/95 border-t border-white/10">
+          <div className="overflow-hidden bg-white/95 dark:bg-black/95 border-t border-black/10 dark:border-white/10">
             <nav className="flex flex-col px-4 py-4 gap-1">
               {navLinks.map((link) => (
-                <Link key={link.href} href={link.href} onClick={closeMenu} className="py-3 px-4 text-white/80 hover:text-white hover:bg-white/5 rounded-lg transition-colors duration-150 touch-manipulation text-center block">
+                <Link key={link.href} href={link.href} onClick={closeMenu} className="py-3 px-4 text-black/80 hover:text-black hover:bg-black/5 dark:text-white/80 dark:hover:text-white dark:hover:bg-white/5 rounded-lg transition-colors duration-150 touch-manipulation text-center block">
                   {link.label}
                 </Link>
               ))}
@@ -61,20 +95,25 @@ const HeroSection = memo(function HeroSection() {
       <div className="relative w-24 h-24 mb-2">
         <Image src="/images/logo.png.png" alt="I.T MAN APPLE CARE" fill sizes="96px" className="object-contain" priority />
       </div>
-      <h1 className="text-2xl font-bold text-white">Accessories</h1>
+      <h1 className="text-2xl font-bold text-white dark:text-black">Accessories</h1>
       <p className="text-amber-500 mt-1 text-sm">Buy & Sell</p>
+      <div className="w-full max-w-md h-48 rounded-xl overflow-hidden shadow-xl mt-4">
+        <video autoPlay loop muted playsInline preload="none" className="w-full h-full object-cover" poster="/images/parts.jpg">
+          <source src="/videos/acccessories.mp4" type="video/mp4" />
+        </video>
+      </div>
     </div>
   );
 });
 
 const CategoryCard = memo(function CategoryCard({ product, onClick }: { product: Product; onClick: () => void }) {
   return (
-    <div onClick={onClick} className="bg-white/5 rounded-xl border border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform duration-150 touch-manipulation">
+    <div onClick={onClick} className="bg-white/5 dark:bg-black/20 rounded-xl border border-gray-200 dark:border-white/10 overflow-hidden cursor-pointer active:scale-95 transition-transform duration-150 touch-manipulation">
       <div className="relative h-32 w-full">
         <Image src={product.imageFront} alt={product.name} fill className="object-contain p-2" unoptimized />
       </div>
-      <div className="p-3 text-center bg-black/50">
-        <h3 className="text-sm font-bold text-white">{product.name}</h3>
+      <div className="p-3 text-center bg-black/50 dark:bg-black/70">
+        <h3 className="text-sm font-bold text-white dark:text-white">{product.name}</h3>
       </div>
     </div>
   );
@@ -84,11 +123,11 @@ const MobileProductDetail = memo(function MobileProductDetail({ product, onBack,
   return (
     <div className="px-4 py-4">
       <button onClick={onBack} className="mb-4 text-amber-500 flex items-center gap-2 text-sm">← Back</button>
-      <div className="relative h-64 w-full mb-4 bg-white/5 rounded-xl overflow-hidden">
+      <div className="relative h-64 w-full mb-4 bg-white/5 dark:bg-black/20 rounded-xl overflow-hidden">
         <Image src={product.imageFront} alt={product.name} fill className="object-contain p-4" unoptimized />
       </div>
-      <h2 className="text-xl font-bold text-white text-center mb-4">{product.name}</h2>
-      
+      <h2 className="text-xl font-bold text-black dark:text-white text-center mb-4">{product.name}</h2>
+
       <div className="flex gap-3 mt-6">
         <button onClick={() => onWhatsApp("buy")} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold text-sm active:scale-95 transition-transform">Buy Now</button>
         <button onClick={() => onWhatsApp("sell")} className="flex-1 py-3 bg-amber-600 text-white rounded-lg font-semibold text-sm active:scale-95 transition-transform">Sell Yours</button>
@@ -159,7 +198,7 @@ export default function AccessoryBuySellPage() {
   if (isMobile) {
     if (selectedProduct) {
       return (
-        <div className="bg-black text-white min-h-screen">
+        <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen">
           <MobileHeader />
           <HeroSection />
           <MobileProductDetail product={selectedProduct} onBack={() => setSelectedProduct(null)} onWhatsApp={handleWhatsApp} />
@@ -167,7 +206,7 @@ export default function AccessoryBuySellPage() {
       );
     }
     return (
-      <div className="bg-black text-white min-h-screen">
+      <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen">
         <MobileHeader />
         <HeroSection />
         <MobileContent />
