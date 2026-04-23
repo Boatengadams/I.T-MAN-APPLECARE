@@ -7,6 +7,17 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { products, Product } from "@/lib/products";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { useTheme } from "@/hooks/use-theme";
+import { generateWhatsAppMessage, createWhatsAppLink } from "@/lib/whatsapp";
+import dynamic from "next/dynamic";
+
+const Accessory3DViewer = dynamic(() => import("@/components/accessory-3d"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
+});
 
 const ThemeToggle = memo(function ThemeToggle() {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -49,7 +60,7 @@ const MobileHeader = memo(function MobileHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const toggleMenu = useCallback(() => setMenuOpen(prev => !prev), []);
   const closeMenu = useCallback(() => setMenuOpen(false), []);
-
+  
   return (
     <>
       <header className="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-[#0a0a0a]/90 backdrop-blur-md border-b border-black/10 dark:border-white/10">
@@ -127,7 +138,7 @@ const MobileProductDetail = memo(function MobileProductDetail({ product, onBack,
         <Image src={product.imageFront} alt={product.name} fill className="object-contain p-4" unoptimized />
       </div>
       <h2 className="text-xl font-bold text-black dark:text-white text-center mb-4">{product.name}</h2>
-
+      
       <div className="flex gap-3 mt-6">
         <button onClick={() => onWhatsApp("buy")} className="flex-1 py-3 bg-green-600 text-white rounded-lg font-semibold text-sm active:scale-95 transition-transform">Buy Now</button>
         <button onClick={() => onWhatsApp("sell")} className="flex-1 py-3 bg-amber-600 text-white rounded-lg font-semibold text-sm active:scale-95 transition-transform">Sell Yours</button>
@@ -142,7 +153,7 @@ const MobileContent = memo(function MobileContent() {
   const accessories = products.filter(p => p.category === "accessory");
   
   const sortedAccessories = [...accessories].sort((a, b) => a.name.localeCompare(b.name));
-
+  
   const handleProductSelect = (product: Product) => setSelectedProduct(product);
   const handleBack = () => setSelectedProduct(null);
   
@@ -151,13 +162,13 @@ const MobileContent = memo(function MobileContent() {
     let message = `I'm interested in ${action === "buy" ? "buying" : "selling"} my ${selectedProduct.name}`;
     window.open(`https://wa.me/233549665779?text=${encodeURIComponent(message)}`, "_blank");
   };
-
+  
   if (!isTabActive) return null;
-
+  
   if (selectedProduct) {
     return <MobileProductDetail product={selectedProduct} onBack={handleBack} onWhatsApp={handleWhatsApp} />;
   }
-
+  
   return (
     <div className="px-4 py-4">
       <div className="grid grid-cols-2 gap-3">
@@ -175,33 +186,50 @@ const MobileContent = memo(function MobileContent() {
 export default function AccessoryBuySellPage() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [show3D, setShow3D] = useState(false);
   
   const accessories = products.filter(p => p.category === "accessory");
-
+  
   const sortedAccessories = [...accessories].sort((a, b) => a.name.localeCompare(b.name));
-
+  
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth <= 1024);
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
-
-  const handleProductSelect = (product: Product) => setSelectedProduct(product);
-
-  const handleWhatsApp = (action: "buy" | "sell") => {
-    if (!selectedProduct) return;
-    let message = `I'm interested in ${action === "buy" ? "buying" : "selling"} my ${selectedProduct.name}`;
-    window.open(`https://wa.me/233549665779?text=${encodeURIComponent(message)}`, "_blank");
+  
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    setShow3D(false);
   };
-
+  
+  const handleWhatsApp = (action: "buy" | "sell") => {
+    if (!selectedProduct) {
+      alert("Please select a product");
+      return;
+    }
+    
+    const productData = {
+      product: selectedProduct.name,
+      model: selectedProduct.id || "N/A",
+      spec: "N/A", // Accessories don't have storage/specs in the same way
+      color: "N/A", // Accessories don't have color selection
+      condition: "Verified & Tested"
+    };
+    
+    const message = generateWhatsAppMessage(productData);
+    const link = createWhatsAppLink(message);
+    window.open(link, "_blank");
+  };
+  
   if (isMobile) {
     if (selectedProduct) {
       return (
         <div className="bg-white dark:bg-black text-black dark:text-white min-h-screen">
           <MobileHeader />
           <HeroSection />
-          <MobileProductDetail product={selectedProduct} onBack={() => setSelectedProduct(null)} onWhatsApp={handleWhatsApp} />
+          <MobileProductDetail product={selectedProduct} onBack={() => { setSelectedProduct(null); setShow3D(false); }} onWhatsApp={handleWhatsApp} />
         </div>
       );
     }
@@ -230,27 +258,33 @@ export default function AccessoryBuySellPage() {
             <p className="text-gray-400 text-center lg:text-left mt-4 text-lg">Buy & Sell premium Apple Accessories</p>
           </div>
           <div className="h-40 lg:h-60 rounded-xl overflow-hidden shadow-xl">
-            <video autoPlay loop muted playsInline preload="none" className="w-full h-full object-cover" poster="/images/parts.jpg">
-              <source src="/videos/acccessories.mp4" type="video/mp4" />
-            </video>
+            <Accessory3DViewer />
           </div>
         </div>
       </div>
-
+    
       {selectedProduct ? (
         <div className="container mx-auto px-6">
-          <button onClick={() => setSelectedProduct(null)} className="mb-6 text-amber-600 hover:text-amber-500 flex items-center gap-2">← Back to all Accessories</button>
+          <button onClick={() => { setSelectedProduct(null); setShow3D(false); }} className="mb-6 text-amber-600 hover:text-amber-500 flex items-center gap-2">← Back to all Accessories</button>
           
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <GlassCard className="p-4">
-              <div className="relative h-64 md:h-80 w-full">
-                <Image src={selectedProduct.imageFront} alt={selectedProduct.name} fill className="object-contain" />
-              </div>
+              {show3D ? (
+                <div className="h-64 md:h-80 w-full"><Accessory3DViewer productId={selectedProduct.id} /></div>
+              ) : (
+                <div className="relative h-64 md:h-80 w-full">
+                  <Image src={selectedProduct.imageFront} alt={selectedProduct.name} fill className="object-contain" />
+                </div>
+              )}
             </GlassCard>
+            
+            <button onClick={() => setShow3D(!show3D)} className="mt-4 w-full px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-medium transition-colors">
+              {show3D ? "View 2D Image" : "View 3D Model"}
+            </button>
             
             <div className="flex flex-col justify-center">
               <h2 className="text-3xl md:text-4xl font-bold mb-4">{selectedProduct.name}</h2>
-              
+               
               <p className="text-gray-400 mb-4 text-sm">Premium quality Apple accessory available for sale. Each item is thoroughly inspected.</p>
               <ul className="text-gray-500 mb-6 space-y-1 text-sm">
                 <li>✓ Fully tested & certified</li>
@@ -258,7 +292,7 @@ export default function AccessoryBuySellPage() {
                 <li>✓ Original Apple parts</li>
                 <li>✓ Trade-in accepted</li>
               </ul>
-              
+               
               <div className="flex gap-4 flex-wrap">
                 <button onClick={() => handleWhatsApp("buy")} className="px-8 py-4 bg-green-600 hover:bg-green-700 text-white rounded-lg font-semibold transition-colors text-lg">Buy Now</button>
                 <button onClick={() => handleWhatsApp("sell")} className="px-8 py-4 bg-amber-600 hover:bg-amber-700 text-white rounded-lg font-semibold transition-colors text-lg">Sell Yours</button>

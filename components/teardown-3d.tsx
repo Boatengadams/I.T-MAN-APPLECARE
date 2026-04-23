@@ -4,17 +4,13 @@ import { Canvas } from "@react-three/fiber";
 import { OrbitControls, Environment, useGLTF } from "@react-three/drei";
 import { Suspense } from "react";
 
-function IMacModel({ modelPath }: { modelPath: string }) {
-  const { scene } = useGLTF(modelPath);
+function TeardownModel() {
+  const { scene } = useGLTF("/models/iphone_teardown.glb");
   
   return <primitive object={scene} scale={2.5} position={[0, -0.5, 0]} />;
 }
 
-export default function IMac3DViewer({ productId }: { productId?: string }) {
-  const modelPath = productId 
-    ? require("@/lib/model-mapping").getModelForProduct(productId)
-    : "/models/apple_imac.glb";
-  
+export default function Teardown3DViewer() {
   return (
     <div className="w-full h-[400px] md:h-[500px] relative">
       <Canvas camera={{ position: [0, 0, 4], fov: 40 }}>
@@ -22,7 +18,7 @@ export default function IMac3DViewer({ productId }: { productId?: string }) {
         <directionalLight position={[5, 5, 5]} intensity={1} />
         
         <Suspense fallback={null}>
-          <IMacModel modelPath={modelPath} />
+          <TeardownModel />
           <Environment preset="city" />
         </Suspense>
         

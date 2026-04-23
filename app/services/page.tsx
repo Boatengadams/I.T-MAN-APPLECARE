@@ -1,10 +1,20 @@
 "use client";
 
 import { useState, useEffect, memo, useCallback } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import Image from "next/image";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { useTheme } from "@/hooks/use-theme";
+
+const Teardown3DViewer = dynamic(() => import("@/components/teardown-3d"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[400px] flex items-center justify-center">
+      <div className="w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  ),
+});
 
 interface ServiceItem {
   id: string;
@@ -116,6 +126,9 @@ const HeroSection = memo(function HeroSection() {
       </div>
       <h1 className="text-2xl font-bold text-black dark:text-white">Repair & Services</h1>
       <p className="text-sm text-amber-500 mt-1">Professional Apple Repairs</p>
+      <div className="w-full max-w-md h-48 rounded-xl overflow-hidden shadow-xl mt-4">
+        <Teardown3DViewer />
+      </div>
     </div>
   );
 });
@@ -247,9 +260,7 @@ export default function ServicesPage() {
             <p className="text-green-400 bg-black/60 px-4 py-2 rounded-xl mt-2 font-semibold inline-block">Contact: {phoneNumber}</p>
           </div>
           <div className="h-40 lg:h-60 rounded-xl overflow-hidden shadow-xl">
-            <video autoPlay loop muted playsInline preload="none" className="w-full h-full object-cover" poster="/images/service1.jpg">
-              <source src="/videos/service.mp4" type="video/mp4" />
-            </video>
+            <Teardown3DViewer />
           </div>
         </div>
       </div>

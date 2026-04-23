@@ -8,6 +8,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { products, Product } from "@/lib/products";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { useTheme } from "@/hooks/use-theme";
+import { generateWhatsAppMessage, createWhatsAppLink } from "@/lib/whatsapp";
 
 const ThemeToggle = memo(function ThemeToggle() {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -232,12 +233,24 @@ export default function IMacBuySellPage() {
     setShow3D(false);
   };
 
-  const handleWhatsApp = (action: "buy" | "sell") => {
-    if (!selectedProduct) return;
-    let message = `I'm interested in ${action === "buy" ? "buying" : "selling"} my ${selectedProduct.name}`;
-    if (selectedConfig) message += ` - ${selectedConfig}`;
-    window.open(`https://wa.me/233549665779?text=${encodeURIComponent(message)}`, "_blank");
-  };
+   const handleWhatsApp = (action: "buy" | "sell") => {
+     if (!selectedProduct || !selectedConfig) {
+       alert("Please select all options");
+       return;
+     }
+     
+     const productData = {
+       product: selectedProduct.name,
+       model: selectedProduct.id,
+       spec: selectedConfig,
+       color: "Not Selected", // iMac page doesn't have color selection in mobile view
+       condition: "Verified & Tested"
+     };
+     
+     const message = generateWhatsAppMessage(productData);
+     const link = createWhatsAppLink(message);
+     window.open(link, "_blank");
+   };
 
   if (isMobile) {
     if (selectedProduct) {
@@ -287,7 +300,7 @@ export default function IMacBuySellPage() {
           
           <div className="grid md:grid-cols-2 gap-8 max-w-5xl mx-auto">
             <GlassCard className="p-4">
-              {show3D ? (<div className="h-64 md:h-80 w-full"><IMac3DViewer /></div>) : (
+              {show3D ? (<div className="h-64 md:h-80 w-full"><IMac3DViewer productId={selectedProduct.id} /></div>) : (
                 <div className="relative h-64 md:h-80 w-full">
                   <Image src={selectedProduct.imageFront} alt={selectedProduct.name} fill className="object-contain" />
                 </div>

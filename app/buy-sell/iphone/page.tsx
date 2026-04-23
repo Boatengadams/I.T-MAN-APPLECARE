@@ -8,6 +8,7 @@ import { GlassCard } from "@/components/ui/glass-card";
 import { products, Product } from "@/lib/products";
 import { usePageVisibility } from "@/hooks/use-page-visibility";
 import { useTheme } from "@/hooks/use-theme";
+import { generateWhatsAppMessage, createWhatsAppLink } from "@/lib/whatsapp";
 
 const ThemeToggle = memo(function ThemeToggle() {
   const { theme, toggleTheme, isDark } = useTheme();
@@ -286,13 +287,24 @@ export default function IPhoneBuySellPage() {
     return colorMap[color] || "#6b7280";
   };
 
-  const handleWhatsApp = (action: "buy" | "sell") => {
-    if (!selectedProduct) return;
-    let message = `I'm interested in ${action === "buy" ? "buying" : "selling"} my ${selectedProduct.name}`;
-    if (selectedColor) message += ` (${selectedColor})`;
-    if (selectedStorage) message += ` - ${selectedStorage}`;
-    window.open(`https://wa.me/233549665779?text=${encodeURIComponent(message)}`, "_blank");
-  };
+   const handleWhatsApp = (action: "buy" | "sell") => {
+     if (!selectedProduct || !selectedColor || !selectedStorage) {
+       alert("Please select all options");
+       return;
+     }
+     
+     const productData = {
+       product: selectedProduct.name,
+       model: selectedProduct.id,
+       spec: selectedStorage,
+       color: selectedColor,
+       condition: "Verified & Tested"
+     };
+     
+     const message = generateWhatsAppMessage(productData);
+     const link = createWhatsAppLink(message);
+     window.open(link, "_blank");
+   };
 
   const currentImage = selectedProduct ? colorImages[selectedProduct.id]?.[selectedColor] || selectedProduct.imageFront : "";
 
@@ -345,7 +357,7 @@ export default function IPhoneBuySellPage() {
           <div className="grid md:grid-cols-2 gap-8 max-w-6xl mx-auto">
             <div className="flex flex-col gap-6">
               <GlassCard className="p-6 w-full">
-                {show3D ? (<div className="w-full aspect-square"><Iphone3DViewer /></div>) : (
+                {show3D ? (<div className="w-full aspect-square"><Iphone3DViewer productId={selectedProduct.id} /></div>) : (
                   <div className="relative w-full aspect-square">
                     <Image key={`${selectedProduct.id}-${selectedColor}`} src={currentImage} alt={selectedProduct.name} fill className="object-contain p-6" unoptimized />
                   </div>
